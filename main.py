@@ -8,7 +8,7 @@ from kivy.config import Config
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.image import Image
 
-import const
+import glo
 from gameboard import GameBoard
 from player import Player
 from tiles import *
@@ -25,7 +25,7 @@ class FilGame(GridLayout):
         self.images = self.setup_images()
         # set background image
         self.bg = Image(source=os.path.join('assets', 'bg.png'), pos=(0,0),
-                width=const.WIDTH, height=const.HEIGHT)
+                width=glo.WIDTH, height=glo.HEIGHT)
         self.add_widget(self.bg)
         # set up game board
         self.board = GameBoard()
@@ -71,7 +71,7 @@ class FilGame(GridLayout):
                     elif self.types[t]['rot']: # tile can only be rotated
                         newtile = RotTile(self.images[t], rotation, 
                                 source=self.images[t][rotation], 
-                                width=const.TILE_SIZE, height=const.TILE_SIZE)
+                                width=glo.TILE_SIZE, height=glo.TILE_SIZE)
                     elif self.types[t]['mov']: # tile can only be moved
                         pass
                     else: # tile can't be moved or rotated
@@ -80,14 +80,14 @@ class FilGame(GridLayout):
                 else: #! should never get here
                     pass
 
-                newtile.pos = self.fix_pos(r, c)
+                newtile.pos = glo.coord2pos(r, c)
                 self.tiles.append(newtile)
                 self.add_widget(newtile)
 
         # place the player tile
         self.ptile = PlayerTile(self.images['player'], self.board.player.get_rot(),
-                width=const.TILE_SIZE, height=const.TILE_SIZE)
-        self.ptile.pos = self.fix_pos(self.board.entrance[0], self.board.entrance[1])
+                width=glo.TILE_SIZE, height=glo.TILE_SIZE)
+        self.ptile.pos = glo.coord2pos(self.board.entrance[0], self.board.entrance[1])
         self.add_widget(self.ptile)
 
     # delete all widgets before loading the next level's tiles
@@ -96,24 +96,14 @@ class FilGame(GridLayout):
             self.remove_widget(tile)
         print('* Tiles cleared')
         
-    # take pos from GameBoard and flip the y-axis to make
-    # their widget position correct (since Kivy starts the y-axis at
-    # the bottom of the screen)
-    def fix_pos(self, x, y, size=const.TILE_SIZE):
-        new_x = x * size
-        new_y = self.bg.height - size*y - size
-        #print('* x:{} -> {}\ny:{} -> {}'.format(x, new_x, y, new_y))
-        new_pos = (new_x, new_y)
-        return new_pos
-
 
 
 class FilApp(App):
     def build(self):
         self.title = "Floor is Lava"
         Config.set('graphics', 'resizable', 0)
-        Config.set('graphics', 'height', str(const.HEIGHT))
-        Config.set('graphics', 'width', str(const.WIDTH))
+        Config.set('graphics', 'height', str(glo.HEIGHT))
+        Config.set('graphics', 'width', str(glo.WIDTH))
 
         return FilGame()
 

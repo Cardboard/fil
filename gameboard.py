@@ -3,12 +3,12 @@ import sys
 
 from player import Player
 from tiles import RotTile
-import const
+import glo
 
 class GameBoard:
     def __init__(self):
-        self.cols = const.COLS
-        self.rows = const.ROWS
+        self.cols = glo.COLS
+        self.rows = glo.ROWS
         self.board = []
         self.player = Player(0, 0, 0) # x, y, rot
         self.entrance = [0, 0]
@@ -52,7 +52,7 @@ class GameBoard:
         # set the players starting rotation
         if self.entrance[0] == 0: # x=0 => facing right
             start_rot = 1 
-        elif self.entrance[0] == const.COLS-1: # facing left
+        elif self.entrance[0] == glo.COLS-1: # facing left
             start_rot = 3 
         elif self.entrance[1] == 0: # y=0 => facing down
             start_rot = 2
@@ -68,3 +68,4 @@ class GameBoard:
         self.pprint()
         print('entr: {}, {}\nexit: {}, {}'.format(
             self.entrance[0], self.entrance[1], self.exit[0], self.exit[1]))
+        glo.board = self.board
