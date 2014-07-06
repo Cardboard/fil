@@ -10,13 +10,15 @@ from kivy.uix.image import Image
 
 import const
 from gameboard import GameBoard
-from tiles import RotTile
+from player import Player
+from tiles import *
 
 
 class FilGame(GridLayout):
     def __init__(self, **kwargs):
         super(FilGame, self).__init__(**kwargs)
         # define tile types
+        self.tiles = [] # holds all tile widgets
         self.types = {
                 'arrow': {'id': 1, 'rot': True, 'mov': False},
                 }
@@ -29,7 +31,6 @@ class FilGame(GridLayout):
         self.board = GameBoard()
         self.board.load()
         # place tiles for starting level
-        self.tiles = []
         self.setup()
 
     def setup_images(self):
@@ -53,6 +54,7 @@ class FilGame(GridLayout):
         #   i[2][0] = tile number
         #   i[2][1] = rotation (0=up,1=right,2=down,3=left)
 
+        # place the tiles
         for i in self.board.boarditer():
             r, c = (int(i[0]), int(i[1]))
             tile_type = int(i[2][0])
@@ -81,6 +83,12 @@ class FilGame(GridLayout):
                 newtile.pos = self.fix_pos(r, c)
                 self.tiles.append(newtile)
                 self.add_widget(newtile)
+
+        # place the player tile
+        self.ptile = PlayerTile(self.images['player'], self.board.player.get_rot(),
+                width=const.TILE_SIZE, height=const.TILE_SIZE)
+        self.ptile.pos = self.fix_pos(self.board.entrance[0], self.board.entrance[1])
+        self.add_widget(self.ptile)
 
     # delete all widgets before loading the next level's tiles
     def clear(self):

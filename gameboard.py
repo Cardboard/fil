@@ -1,6 +1,7 @@
 import os
 import sys
 
+from player import Player
 from tiles import RotTile
 import const
 
@@ -9,7 +10,7 @@ class GameBoard:
         self.cols = const.COLS
         self.rows = const.ROWS
         self.board = []
-        self.player = [0, 0, 0] # x, y, rot
+        self.player = Player(0, 0, 0) # x, y, rot
         self.entrance = [0, 0]
         self.exit = [0, 0]
         # create a new board and start it filled with empty spaces
@@ -48,6 +49,18 @@ class GameBoard:
         # grab the level exit location
         line = f.readline().split(',')
         self.exit = (int(line[0]), int(line[1].rstrip()))
+        # set the players starting rotation
+        if self.entrance[0] == 0: # x=0 => facing right
+            start_rot = 1 
+        elif self.entrance[0] == const.COLS-1: # facing left
+            start_rot = 3 
+        elif self.entrance[1] == 0: # y=0 => facing down
+            start_rot = 2
+        else: # facing up
+            start_rot = 0 
+        self.player.set_pos(self.entrance)
+        self.player.set_rot(start_rot)
+        print('Player is facing {}'.format(['up','down','left','right'][start_rot]))
         for r in range(self.rows):
             line = f.readline().split(' ')
             for c in range(self.cols):
