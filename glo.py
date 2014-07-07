@@ -23,6 +23,18 @@ def pos2coord(x, y, size=TILE_SIZE):
     return new_pos 
 
 class tiles:
-    can_move = [
-        '10', '11', '12',
-        ]
+    can_move = {
+        'up': [
+            '10',
+            ],
+        'right': [ 
+            '11',
+            ],
+        'down': [
+            '12',
+            ],
+        'left': [
+            '13',
+            ],
+        }
+
