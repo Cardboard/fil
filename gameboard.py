@@ -7,8 +7,8 @@ import glo
 
 class GameBoard:
     def __init__(self):
-        self.cols = glo.COLS
-        self.rows = glo.ROWS
+        self.cols = glo.const.COLS
+        self.rows = glo.const.ROWS
         self.board = []
         self.player = Player(0, 0, 0) # x, y, rot
         self.entrance = [0, 0]
@@ -52,7 +52,7 @@ class GameBoard:
         # set the players starting rotation
         if self.entrance[0] == 0: # x=0 => facing right
             start_rot = 1 
-        elif self.entrance[0] == glo.COLS-1: # facing left
+        elif self.entrance[0] == glo.const.COLS-1: # facing left
             start_rot = 3 
         elif self.entrance[1] == 0: # y=0 => facing down
             start_rot = 2
@@ -60,7 +60,7 @@ class GameBoard:
             start_rot = 0 
         self.player.set_pos(self.entrance)
         self.player.set_rot(start_rot)
-        print('Player is facing {}'.format(['up','down','left','right'][start_rot]))
+        print('Player is facing {}'.format(['up','right','down','left'][start_rot]))
         for r in range(self.rows):
             line = f.readline().split(' ')
             for c in range(self.cols):
@@ -68,4 +68,4 @@ class GameBoard:
         self.pprint()
         print('entr: {}, {}\nexit: {}, {}'.format(
             self.entrance[0], self.entrance[1], self.exit[0], self.exit[1]))
-        glo.board = self.board
+        glo.const.board = self.board
