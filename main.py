@@ -93,7 +93,8 @@ class FilGame(GridLayout):
         # place the player tile
         self.ptile = PlayerTile(self.images['player'], self.board.player.get_rot(),
                 width=glo.const.TILE_SIZE, height=glo.const.TILE_SIZE)
-        self.ptile.pos = glo.coord2pos(self.board.entrance[0], self.board.entrance[1])
+        self.ptile.pos = glo.coord2pos(self.board.entrance)
+        self.ptile.set_last = (self.board.entrance)
         self.add_widget(self.ptile)
 
     # delete all widgets before loading the next level's tiles
