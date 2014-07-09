@@ -21,8 +21,11 @@ class FilGame(GridLayout):
         # define tile types
         self.tiles = [] # holds all tile widgets
         self.types = {
-                'arrow': {'id': 1, 'rot': True, 'mov': False},
-                'start': {'id': 2, 'rot': True, 'mov': False},
+                #'arrow': {'id': 1, 'rot': True, 'mov': True},
+                #'start': {'id': 2, 'rot': False, 'mov': False},
+                'movchair': {'id': 1, 'rot': False, 'mov': True},
+                'rotchair': {'id': 2, 'rot': True, 'mov': True},
+                'couch3m': {'id': 4, 'rot': False, 'mov': False},
                 }
         self.images = self.setup_images()
         # set background image
@@ -72,18 +75,24 @@ class FilGame(GridLayout):
                     maketile = True
                     # tile can be rotated and moved pass
                     if self.types[t]['rot'] and self.types[t]['mov']: 
-                        pass
+                        newtile = MovRotTile(self.images[t], rotation, 
+                                source=self.images[t][rotation], 
+                                width=glo.const.TILE_SIZE, height=glo.const.TILE_SIZE)
                     elif self.types[t]['rot']: # tile can only be rotated
                         newtile = RotTile(self.images[t], rotation, 
                                 source=self.images[t][rotation], 
                                 width=glo.const.TILE_SIZE, height=glo.const.TILE_SIZE)
                     elif self.types[t]['mov']: # tile can only be moved
-                        pass
+                        newtile = MovTile(self.images[t], rotation, 
+                                source=self.images[t][rotation], 
+                                width=glo.const.TILE_SIZE, height=glo.const.TILE_SIZE)
                     else: # tile can't be moved or rotated
-                        pass
+                        newtile = Tile(source=self.images[t][rotation], 
+                                width=glo.const.TILE_SIZE, height=glo.const.TILE_SIZE)
 
                 else: #! should never get here
                     pass
+
 
                 if maketile:
                     newtile.pos = glo.coord2pos(r, c)
@@ -95,6 +104,7 @@ class FilGame(GridLayout):
                 width=glo.const.TILE_SIZE, height=glo.const.TILE_SIZE)
         self.ptile.pos = glo.coord2pos(self.board.entrance)
         self.ptile.set_last = (self.board.entrance)
+        glo.const.pcoord = self.board.entrance
         self.add_widget(self.ptile)
 
     # delete all widgets before loading the next level's tiles
