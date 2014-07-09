@@ -43,83 +43,125 @@ class PlayerTile(DragBehavior, Image):
 
             # HORIZONTAL MOVEMENT
             if mouse.dx > 0 and x < glo.const.COLS-1:
-                if self.check_tile(x+1, y, 'right'):
-                    self.save_last(x-1, y)
-                    self.x += mouse.dx
-                elif self.check_tile(x+2, y, 'right') and self.is_lava(x+1, y):
+                if self.check_move(x, y, 'right'):
                     self.x += mouse.dx
                 else:
                     self.snap('x')
             elif mouse.dx < 0 and self.x > 0:
-                if self.x % glo.const.TILE_SIZE == 0:
-                    if self.check_tile(x-1, y, 'left'):
-                        self.x += mouse.dx
-                    elif self.check_tile(x-2, y, 'left') and self.is_lava(x-1, y):
-                        self.x += mouse.dx
-                    else:
-                        self.snap('x')
-                else:
-                    if self.check_tile(x, y, 'left'):
-                        self.save_last(x+2, y)
-                        self.x += mouse.dx
-                    elif self.check_tile(x-1, y, 'left') and self.is_lava(x, y):
-                        self.x += mouse.dx
-                    else:
-                        self.snap('x')
+                if self.check_move(x, y, 'left'):
+                    self.x += mouse.dx
 
             # VERTICAL MOVEMENT
             if mouse.dy > 0 and y < glo.const.ROWS-1:
-                if self.check_tile(x, y-1, 'up'):
-                    self.save_last(x, y+1)
-                    self.y += mouse.dy
-                elif self.check_tile(x, y-2, 'up') and self.is_lava(x, y-1):
+                if self.check_move(x, y, 'up'):
                     self.y += mouse.dy
                 else:
                     self.snap('y')
             elif mouse.dy < 0 and self.y > 0:
-                if self.y % glo.const.TILE_SIZE == glo.const.MARGIN:
-                    if self.check_tile(x, y+1, 'down'):
-                        self.y += mouse.dy
-                    elif self.check_tile(x, y+2, 'down') and self.is_lava(x, y+1):
-                        self.y += mouse.dy
-                    else:
-                        self.snap('y')
-                else:
-                    if self.check_tile(x, y, 'down'):
-                        self.save_last(x, y-2)
-                        self.y += mouse.dy
-                    elif self.check_tile(x, y+1, 'down') and self.is_lava(x, y):
-                        self.y += mouse.dy
-                    else:
-                        self.snap('y')
+                if self.check_move(x, y, 'down'):
+                    self.y += mouse.dy
 
-    # check to see if the tile is able to be moved to
-    def check_tile(self, x, y, direc):
+    # check to see if the move is valid
+    def check_move(self, x, y, direc):
+        # can't move because edge of map
         if x < 0 or x >= glo.const.COLS or y < 0 or y >= glo.const.ROWS:
             return False
-        move_to = glo.const.board[y][x] in glo.tiles.can_move[direc]
+        # directional movement
         if direc == 'right':
-            move_from = glo.const.board[y][x-1] in glo.tiles.can_move['left']\
-                    or glo.const.board[y][x+1] == '00'
-        if direc == 'left':
-            move_from = glo.const.board[y][x] in glo.tiles.can_move['right']\
-                    or glo.const.board[y][x-1] == '00'
-        if direc == 'up':
-            move_from = glo.const.board[y+1][x] in glo.tiles.can_move['down']\
-                    or glo.const.board[y-1][x] == '00'
-        if direc == 'down':
-            move_from = glo.const.board[y-1][x] in glo.tiles.can_move['up']\
-                    or glo.const.board[y+1][x] == '00'
-        return move_to and move_from
+            t0 = glo.const.board[y][x]
+            t1 = glo.const.board[y][x+1]
+            t2 = glo.const.board[y][x+2]
+            # check to make sure we can move right from the tile we're on
+            # we are checking left tiles because it is set up so that 
+            # tiles in ['left'] are the tiles we can't move left ONTO,
+            # meaning we can't move right OFF OF them
+
+            # we can also move right if we are already on lava and the tile
+            # to the right is able to be moved onto
+            if t0 not in glo.tiles.can_move['left'] and not t0 == '00':
+                return False
+            # check the tile to the right to see if we can move left onto it
+            if t1 in glo.tiles.can_move['right']:
+                if t0 != '00':
+                    self.save_last(x, None)
+                return True
+            # check to see if we are moving OVER lava into a space we can move onto
+            if t1 == '00' and t2 in glo.tiles.can_move['right']:
+                return True
+        elif direc == 'left':
+            # check to see if the move has just started,
+            # since the origin of the tile is on the left, so
+            # immediately after moving the current tile changes,
+            # as opposed to moving right, where the tile is constant
+            # until the tile has moved all the way
+            if self.x % glo.const.TILE_SIZE == 0:
+                t0 = glo.const.board[y][x]
+                t1 = glo.const.board[y][x-1]
+                t2 = glo.const.board[y][x-2]
+            else:
+                t0 = glo.const.board[y][x+1]
+                t1 = glo.const.board[y][x]
+                t2 = glo.const.board[y][x-1]
+            # see comments above for better explanation of the rest
+
+            # make sure we can move left off the current tile,
+            # or are on lava (in the middle of a movement over lava)
+            if t0 not in glo.tiles.can_move['right'] and not t0 == '00':
+                return False
+            # make sure we can move left onto the destination tile
+            if t1 in glo.tiles.can_move['left']:
+                if t0 != '00':
+                    self.save_last(x, None)
+                return True
+            # if we are on lava and the tile after is valid, we can move
+            if t1 == '00' and t2 in glo.tiles.can_move['left']:
+                return True
+
+        elif direc == 'down':
+            if self.y % glo.const.TILE_SIZE == glo.const.MARGIN:
+                t0 = glo.const.board[y][x]
+                t1 = glo.const.board[y+1][x]
+                t2 = glo.const.board[y+2][x]
+            else:
+                t0 = glo.const.board[y-1][x]
+                t1 = glo.const.board[y][x]
+                t2 = glo.const.board[y+1][x]
+            # move off current tile is valid (or are on lava)
+            if t0 not in glo.tiles.can_move['up'] and not t0 == '00':
+                return False
+            # move onto adjacent tile is valid
+            if t1 in glo.tiles.can_move['down']:
+                if t0 != '00':
+                    self.save_last(None, y)
+                return True
+            # on lava and move onto adjacent tile is valid
+            if t1 == '00' and t2 in glo.tiles.can_move['down']:
+                return True
+
+        elif direc == 'up':
+            t0 = glo.const.board[y][x]
+            t1 = glo.const.board[y-1][x]
+            t2 = glo.const.board[y-2][x]
+            # move off current tile is valid (or on lava)
+            if t0 not in glo.tiles.can_move['down'] and not t0 == '00':
+                return False
+            # move onto adjacent tile is valid
+            if t1 in glo.tiles.can_move['up']:
+                if t0 != '00':
+                    self.save_last(None, y)
+                return True
+            # on lava and move onto adjacent tile is valid
+            if t1 == '00' and t2 in glo.tiles.can_move['up']:
+                return True
     
     # saves the last position of the player 
     # on a valid tile (not in lava) 
     # ((so we can move him back if he tries to
     # end his movement in lava like a moron))
     def save_last(self, x=None, y=None):
-        if x and self.last[0] != x:
+        if x != None and self.last[0] != x:
             self.last[0] = x
-        if y and self.last[1] != y:
+        if y != None and self.last[1] != y:
             self.last[1] = y
         glo.const.pcoord = self.last
 
@@ -135,12 +177,8 @@ class PlayerTile(DragBehavior, Image):
                 self.y + glo.const.TILE_SIZE/2)
         newx, newy = glo.coord2pos(x,y)
         if 'x' in direc:
-            if glo.const.board[y][x] != '00':
-                self.save_last(x=x)
             self.x = newx
         if 'y' in direc:
-            if glo.const.board[y][x] != '00':
-                self.save_last(y=y)
             self.y = newy
 
     def release_callback(self, obj, mouse):
@@ -150,7 +188,8 @@ class PlayerTile(DragBehavior, Image):
         if self.is_lava(glo.pos2coord(self.x, self.y)):
             self.x, self.y = glo.coord2pos(self.last)
         else:
-            self.last = glo.pos2coord(self.x, self.y)
+            x, y = glo.pos2coord(self.x, self.y)
+            self.save_last(x, y)
 
 
 class MovRotTile(ButtonBehavior, Image):
