@@ -48,23 +48,23 @@ class PlayerTile(DragBehavior, Image):
                     self.moving = 'right'
                     #self.x += mouse.dx
                     self.x = mouse.x - glo.const.TILE_SIZE/2
-                else:
-                    self.snap('x')
-            elif mouse.dx < 0 and self.x > 0:
+#                else:
+#                    self.snap('x')
+            if mouse.dx < 0 and self.x > 0:
                 if self.check_move(x, y, 'left') and self.moving in ['left', None]:
                     self.moving = 'left'
                     #self.x += mouse.dx
                     self.x = mouse.x - glo.const.TILE_SIZE/2
 
             # VERTICAL MOVEMENT
-            elif mouse.dy > 0 and y < glo.const.ROWS-1:
+            if mouse.dy > 0 and y < glo.const.ROWS-1:
                 if self.check_move(x, y, 'up') and self.moving in ['up', None]:
                     self.moving = 'up'
                     #self.y += mouse.dy
                     self.y = mouse.y - glo.const.TILE_SIZE/2
-                else:
-                    self.snap('y')
-            elif mouse.dy < 0 and self.y > 0:
+#                else:
+#                    self.snap('y')
+            if mouse.dy < 0 and self.y > 0:
                 if self.check_move(x, y, 'down') and self.moving in ['down', None]:
                     self.moving == 'down'
                     #self.y += mouse.dy
