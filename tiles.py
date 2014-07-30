@@ -209,19 +209,20 @@ class MovRotTile(ButtonBehavior, Image):
         self.images = images
         self.rot = rotation
         self.bind(on_touch_down=self.action_callback)
-        self.waiting = True
+        self.waiting = False
+        self.time_to_wait = 0.5
 
     # filters out single and double clicks then calls the correct callback
     def action_callback(self, obj, mouse):
         is_adj, direc = self.is_adj_player()
         if is_adj: # make sure player is adjacent to the tile
             if self.collide_point(mouse.x, mouse.y):
-                if mouse.is_double_tap and self.waiting:
+                if self.waiting:
                     self.rotate_callback(obj, mouse)
                     self.waiting = False
                 else:
                     self.waiting = True
-                    Clock.schedule_once(partial(self.check_double_tap, obj, mouse, direc), 0.2)
+                    Clock.schedule_once(partial(self.check_double_tap, obj, mouse, direc), self.time_to_wait)
 
     # check to see if a double tap has occured while waiting a bit
     # if not, register the first tap as a single tap
@@ -306,49 +307,32 @@ class MovTile(ButtonBehavior, Image):
         self.allow_stretch = True
         self.images = images
         self.rot = rotation
-        self.bind(on_touch_down=self.action_callback)
+        self.bind(on_touch_down=self.move_callback)
         self.waiting = True
-
-    # filters out single and double clicks then calls the correct callback
-    def action_callback(self, obj, mouse):
-        is_adj, direc = self.is_adj_player()
-        if is_adj: # make sure player is adjacent to the tile
-            if self.collide_point(mouse.x, mouse.y):
-                # double click does nothing for MovTiles
-                if mouse.is_double_tap and self.waiting:
-                    self.waiting = False
-                else:
-                    self.waiting = True
-                    Clock.schedule_once(partial(self.check_double_tap, obj, mouse, direc), 0.2)
-
-    # check to see if a double tap has occured while waiting a bit
-    # if not, register the first tap as a single tap
-    def check_double_tap(self, obj, mouse, direc, dt):
-        if self.waiting:
-            self.move_callback(obj, mouse, direc)
-            self.waiting = False
         
     # move a tile that is adjacent to the player
-    def move_callback(self, obj, mouse, direc):
-        x, y = glo.pos2coord(self.x, self.y)
-        tile = glo.const.board[y][x]
-        if direc == 'up': # push tile upwards
-            glo.const.board[y][x] = '00'
-            y -= 1
-            glo.const.board[y][x] = tile 
-        elif direc == 'down':
-            glo.const.board[y][x] = '00'
-            y += 1
-            glo.const.board[y][x] = tile 
-        elif direc == 'right':
-            glo.const.board[y][x] = '00'
-            x += 1
-            glo.const.board[y][x] = tile 
-        elif direc == 'left':
-            glo.const.board[y][x] = '00'
-            x -= 1
-            glo.const.board[y][x] = tile 
-        self.x, self.y = glo.coord2pos(x, y)
+    def move_callback(self, obj, mouse):
+        is_adj, direc = self.is_adj_player()
+        if is_adj:
+            x, y = glo.pos2coord(self.x, self.y)
+            tile = glo.const.board[y][x]
+            if direc == 'up': # push tile upwards
+                glo.const.board[y][x] = '00'
+                y -= 1
+                glo.const.board[y][x] = tile 
+            elif direc == 'down':
+                glo.const.board[y][x] = '00'
+                y += 1
+                glo.const.board[y][x] = tile 
+            elif direc == 'right':
+                glo.const.board[y][x] = '00'
+                x += 1
+                glo.const.board[y][x] = tile 
+            elif direc == 'left':
+                glo.const.board[y][x] = '00'
+                x -= 1
+                glo.const.board[y][x] = tile 
+            self.x, self.y = glo.coord2pos(x, y)
 
     def is_lava(self, x, y=None):
         if y == None:
@@ -394,22 +378,37 @@ class RotTile(ButtonBehavior, Image):
         self.allow_stretch = True
         self.images = images
         self.rot = rotation
-        self.bind(on_touch_down=self.rotate_callback)
-        self.waiting = True
+        self.bind(on_touch_down=self.action_callback)
+        self.waiting = False
+        self.time_to_wait = 0.5
+
+    # filters out single and double clicks then calls the correct callback
+    def action_callback(self, obj, mouse):
+        is_adj, direc = self.is_adj_player()
+        if is_adj: # make sure player is adjacent to the tile
+            if self.collide_point(mouse.x, mouse.y):
+                if self.waiting:
+                    self.rotate_callback(obj, mouse)
+                    self.waiting = False
+                else:
+                    self.waiting = True
+                    Clock.schedule_once(partial(self.check_double_tap, obj, mouse, direc), self.time_to_wait)
+
+    # check to see if a double tap has occured while waiting a bit
+    # if not, register the first tap as a single tap
+    def check_double_tap(self, obj, mouse, direc, dt):
+        if self.waiting:
+            self.waiting = False
         
     def rotate_callback(self, obj, mouse):
-        # only rotate the tile if the player is next to it
-        if self.is_adj_player()[0]: # is_adj_player returns [bool, direction]
-            # the mouse collides with the tile and is a double click
-            if self.collide_point(mouse.x, mouse.y) and mouse.is_double_tap:
-                # update the tile's image
-                self.rot = (self.rot + 1) % 4 
-                self.source = self.images[self.rot]
-                # update the board
-                x,y = glo.pos2coord(self.x, self.y)
-                glo.const.board[y][x] = glo.const.board[y][x][0] + str(self.rot)
-                self.double = False
-
+        # update the tile's image
+        self.rot = (self.rot + 1) % 4 
+        self.source = self.images[self.rot]
+        # update the board
+        x,y = glo.pos2coord(self.x, self.y)
+        glo.const.board[y][x] = glo.const.board[y][x][0] + str(self.rot)
+        self.double = False
+        
     def is_lava(self, x, y=None):
         if y == None:
             x,y = x[0], x[1]
