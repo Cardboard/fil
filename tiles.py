@@ -17,6 +17,7 @@ class PlayerTile(DragBehavior, Image):
         self.images = images
         self.rot = rotation
         self.last = [0, 0]
+        self.moving = True
         # drag props
         self.drag_rectangle = self.x, self.y, glo.const.TILE_SIZE, glo.const.TILE_SIZE
         # events
@@ -43,23 +44,31 @@ class PlayerTile(DragBehavior, Image):
 
             # HORIZONTAL MOVEMENT
             if mouse.dx > 0 and x < glo.const.COLS-1:
-                if self.check_move(x, y, 'right'):
-                    self.x += mouse.dx
+                if self.check_move(x, y, 'right') and self.moving in ['right', None]:
+                    self.moving = 'right'
+                    #self.x += mouse.dx
+                    self.x = mouse.x - glo.const.TILE_SIZE/2
                 else:
                     self.snap('x')
             elif mouse.dx < 0 and self.x > 0:
-                if self.check_move(x, y, 'left'):
-                    self.x += mouse.dx
+                if self.check_move(x, y, 'left') and self.moving in ['left', None]:
+                    self.moving = 'left'
+                    #self.x += mouse.dx
+                    self.x = mouse.x - glo.const.TILE_SIZE/2
 
             # VERTICAL MOVEMENT
-            if mouse.dy > 0 and y < glo.const.ROWS-1:
-                if self.check_move(x, y, 'up'):
-                    self.y += mouse.dy
+            elif mouse.dy > 0 and y < glo.const.ROWS-1:
+                if self.check_move(x, y, 'up') and self.moving in ['up', None]:
+                    self.moving = 'up'
+                    #self.y += mouse.dy
+                    self.y = mouse.y - glo.const.TILE_SIZE/2
                 else:
                     self.snap('y')
             elif mouse.dy < 0 and self.y > 0:
-                if self.check_move(x, y, 'down'):
-                    self.y += mouse.dy
+                if self.check_move(x, y, 'down') and self.moving in ['down', None]:
+                    self.moving == 'down'
+                    #self.y += mouse.dy
+                    self.y = mouse.y - glo.const.TILE_SIZE/2
 
     # check to see if the move is valid
     def check_move(self, x, y, direc):
@@ -185,6 +194,7 @@ class PlayerTile(DragBehavior, Image):
         # if the player ends on a lava space, move them
         # back to the last valid tile they were on
         self.snap('xy')
+        self.moving = None
         if self.is_lava(glo.pos2coord(self.x, self.y)):
             self.x, self.y = glo.coord2pos(self.last)
         else:
